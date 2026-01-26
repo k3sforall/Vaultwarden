@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: clusterissuer-vaultwarden
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: cert-manager
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "hanlim@speedykorea.com"
+    privateKeySecretRef:
+      name: clusterissuer-vaultwarden-key
+    solvers:
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: vaultwarden-gw
+                namespace: default
+                kind: Gateway
+        selector:
+          dnsNames:
+            - svault.speedycdn.net

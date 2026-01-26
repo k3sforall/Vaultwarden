@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vaultwarden
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: core
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-30"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/k3sforall/Vaultwarden/
+    targetRevision: main
+    path: Application/vaultwarden
+    directory:
+      recurse: false
+  destination:
+    name: in-cluster
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: false
+    syncOptions:
+      - CreateNamespace=false
+      - ApplyOutOfSyncOnly=true

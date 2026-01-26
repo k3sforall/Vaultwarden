@@ -1,0 +1,33 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: vaultwarden-gw
+  namespace: default
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: web
+      hostname: svault.speedycdn.net
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      hostname: svault.speedycdn.net
+      port: 8443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: vaultwarden-tls-secret
+      allowedRoutes:
+        namespaces:
+          from: Same

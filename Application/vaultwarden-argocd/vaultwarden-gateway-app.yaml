@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vaultwarden-gateway
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-50"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/k3sforall/Vaultwarden/
+    targetRevision: main
+    path: Application/vaultwarden-gateway
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=false
+      - ApplyOutOfSyncOnly=true

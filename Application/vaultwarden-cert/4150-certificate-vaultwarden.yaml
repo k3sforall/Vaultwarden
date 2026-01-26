@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vaultwarden-tls-cert
+  namespace: default
+  labels:
+    app.kubernetes.io/name: vaultwarden
+    app.kubernetes.io/component: certificate
+    app.kubernetes.io/part-of: cert-manager
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  secretName: vaultwarden-tls-secret
+  issuerRef:
+    name: clusterissuer-vaultwarden
+    kind: ClusterIssuer
+  commonName: svault.speedycdn.net
+  dnsNames:
+    - svault.speedycdn.net

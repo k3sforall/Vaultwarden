@@ -15,5 +15,5 @@ spec:
   storageClassName: vaultwarden-local-storage
   resources:
     requests:
-      storage: 10Gi
+      storage: 50Gi
   volumeName: vaultwarden-data-pv

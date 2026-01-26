@@ -45,6 +45,11 @@ spec:
               value: "info"
             - name: EXTENDED_LOGGING
               value: "true"
+            # Organization Event Logging
+            - name: ORG_EVENTS_ENABLED
+              value: "true"
+            - name: EVENTS_DAYS_RETAIN
+              value: "365"
           volumeMounts:
             - name: data
               mountPath: /data

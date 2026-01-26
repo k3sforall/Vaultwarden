@@ -6,7 +6,8 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 
 | Item | Value |
 |------|-------|
-| Domain | `svault.speedycdn.net` |
+| Vaultwarden Domain | `svault.speedycdn.net` |
+| ArgoCD Domain | `sargocd.speedycdn.net` |
 | Git URL | `https://github.com/k3sforall/Vaultwarden/` |
 | Node Name | `laptop-nofan` |
 | cert-manager Email | `hanlim@speedykorea.com` |
@@ -18,32 +19,45 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 ```
 /root/Vaultwarden/
 ├── Application/
-│   ├── vaultwarden/                    # Core resources (GitOps)
+│   ├── argocd-gateway/              # ArgoCD Gateway API (GitOps)
+│   │   ├── 1010-gateway-argocd.yaml
+│   │   ├── 3200-httproute-https-argocd.yaml
+│   │   └── 3210-httproute-http-redirect-argocd.yaml
+│   │
+│   ├── vaultwarden/                 # Vaultwarden Core (GitOps)
 │   │   ├── 2110-storageclass-vaultwarden.yaml
 │   │   ├── 2210-pv-vaultwarden.yaml
 │   │   ├── 2220-pvc-vaultwarden.yaml
 │   │   ├── 2410-service-clusterip-vaultwarden.yaml
 │   │   └── 2510-deployment-vaultwarden.yaml
 │   │
-│   ├── vaultwarden-gateway/            # Gateway API resources (GitOps)
-│   │   ├── 1016-gateway-vaultwarden.yaml
-│   │   ├── 3201-httproute-https-vaultwarden.yaml
-│   │   └── 3211-httproute-http-redirect-vaultwarden.yaml
+│   ├── vaultwarden-argocd/          # ArgoCD Applications
+│   │   ├── argocd-gateway-app.yaml
+│   │   ├── vaultwarden-app.yaml
+│   │   └── vaultwarden-gateway-app.yaml
 │   │
-│   ├── vaultwarden-cert/               # cert-manager resources (GitOps)
-│   │   ├── 3100-clusterissuer-vaultwarden.yaml
-│   │   └── 4150-certificate-vaultwarden.yaml
+│   └── vaultwarden-gateway/         # Vaultwarden Gateway API (GitOps)
+│       ├── 1016-gateway-vaultwarden.yaml
+│       ├── 3201-httproute-https-vaultwarden.yaml
+│       └── 3211-httproute-http-redirect-vaultwarden.yaml
+│
+├── infra/
+│   ├── cert-manager/
+│   │   ├── 3000-app-cert-manager.yaml          # ArgoCD App (Helm)
+│   │   ├── 3100-app-cert-manager-objects.yaml  # ArgoCD App (objects)
+│   │   └── objects/
+│   │       ├── 3100-clusterissuer-argocd.yaml
+│   │       ├── 3100-clusterissuer-vaultwarden.yaml
+│   │       ├── 4150-certificate-argocd.yaml
+│   │       └── 4150-certificate-vaultwarden.yaml
 │   │
-│   └── vaultwarden-argocd/             # ArgoCD Applications
-│       ├── cert-manager-app.yaml       # cert-manager Helm chart
-│       ├── vaultwarden-gateway-app.yaml
-│       ├── vaultwarden-cert-app.yaml
-│       └── vaultwarden-app.yaml        # Core resources
+│   └── traefik/
+│       └── traefik-gateway-config.yaml
 │
 ├── scripts/
-│   ├── 00-install-prerequisites.sh     # Directories & secrets
-│   ├── 02-install-argocd.sh            # ArgoCD installation
-│   └── vaultwarden_backup.sh           # Backup script
+│   ├── 00-install-prerequisites.sh
+│   ├── 02-install-argocd.sh
+│   └── vaultwarden_backup.sh
 │
 └── README.md
 ```
@@ -57,83 +71,97 @@ chmod +x /root/Vaultwarden/scripts/*.sh
 /root/Vaultwarden/scripts/00-install-prerequisites.sh
 ```
 
-### Step 2: ArgoCD Installation (Script)
+### Step 2: Traefik Gateway API Configuration
 
-ArgoCD는 GitOps 도구 자체이므로 스크립트로 설치합니다.
+```bash
+cp /root/Vaultwarden/infra/traefik/traefik-gateway-config.yaml \
+   /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+kubectl -n kube-system rollout restart deployment traefik
+```
+
+### Step 3: ArgoCD Installation (Script)
 
 ```bash
 /root/Vaultwarden/scripts/02-install-argocd.sh
 ```
 
-### Step 3: Push to Git Repository
-
-ArgoCD가 Git에서 리소스를 동기화하므로, 먼저 Git에 푸시합니다.
+### Step 4: Push to Git Repository
 
 ```bash
 cd /root/Vaultwarden
 git add -A
-git commit -m "Vaultwarden GitOps deployment configuration"
+git commit -m "Vaultwarden GitOps deployment"
 git push origin main
 ```
 
-### Step 4: Deploy ArgoCD Applications (GitOps)
-
-ArgoCD Application을 순서대로 적용합니다. sync-wave에 의해 자동 순서 제어됩니다.
+### Step 5: Deploy ArgoCD Applications (GitOps)
 
 ```bash
-# cert-manager 먼저 (sync-wave: -100)
-kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/cert-manager-app.yaml
+# cert-manager (Helm)
+kubectl apply -f /root/Vaultwarden/infra/cert-manager/3000-app-cert-manager.yaml
 
-# cert-manager Ready 대기
+# Wait for cert-manager
 kubectl -n argocd get application cert-manager -w
 
-# 나머지 Applications 적용 (sync-wave 순서대로 자동 배포)
+# cert-manager objects (ClusterIssuers, Certificates)
+kubectl apply -f /root/Vaultwarden/infra/cert-manager/3100-app-cert-manager-objects.yaml
+
+# Gateway Applications
+kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/argocd-gateway-app.yaml
 kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/vaultwarden-gateway-app.yaml
-kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/vaultwarden-cert-app.yaml
+
+# Vaultwarden Core
 kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/vaultwarden-app.yaml
 ```
 
-## Sync Wave Order
+## ArgoCD Applications
 
-| Wave | Application | Description |
-|------|-------------|-------------|
-| -100 | cert-manager | cert-manager Helm chart |
-| -50 | vaultwarden-gateway | Gateway + HTTPRoutes |
-| -40 | vaultwarden-cert | ClusterIssuer + Certificate |
-| -30 | vaultwarden | Core (StorageClass, PV, PVC, Service, Deployment) |
+| Name | Description | Source |
+|------|-------------|--------|
+| cert-manager | cert-manager Helm chart | charts.jetstack.io |
+| cert-manager-objects | ClusterIssuers, Certificates | infra/cert-manager/objects |
+| argocd-gateway | ArgoCD Gateway API | Application/argocd-gateway |
+| vaultwarden-gateway | Vaultwarden Gateway API | Application/vaultwarden-gateway |
+| vaultwarden | Vaultwarden Core | Application/vaultwarden |
 
 ## Verification
 
-### 1. ArgoCD Applications Status
-
 ```bash
+# ArgoCD Applications
 kubectl -n argocd get applications
-```
 
-### 2. Check Pod Status
+# Gateways
+kubectl get gateway -A
 
-```bash
+# HTTPRoutes
+kubectl get httproute -A
+
+# Certificates
+kubectl get certificate -A
+
+# Pods
 kubectl get pods -l app.kubernetes.io/name=vaultwarden
+kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-server
 ```
 
-### 3. Check Certificate Issuance
+## Access URLs
+
+| Service | URL |
+|---------|-----|
+| Vaultwarden | https://svault.speedycdn.net |
+| Vaultwarden Admin | https://svault.speedycdn.net/admin |
+| ArgoCD | https://sargocd.speedycdn.net |
+
+## ArgoCD Login
 
 ```bash
-kubectl get certificate vaultwarden-tls-cert
-kubectl describe certificate vaultwarden-tls-cert
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 -d
 ```
 
-### 4. Check Gateway Status
-
-```bash
-kubectl get gateway vaultwarden-gw
-kubectl get httproute
-```
-
-### 5. Web Access Test
-
-- Main: https://svault.speedycdn.net
-- Admin: https://svault.speedycdn.net/admin
+- Username: `admin`
+- Password: (from above command)
 
 ## Backup
 
@@ -152,62 +180,14 @@ kubectl get httproute
 
 ## Restore
 
-### 1. Stop the Pod
-
 ```bash
+# 1. Stop the Pod
 kubectl scale deployment vaultwarden --replicas=0
-```
 
-### 2. Restore Data
-
-```bash
-# Restore database
+# 2. Restore Data
 gunzip -c /backup/vaultwarden/YYYYMMDD/db_*.sqlite3.gz > /var/lib/vaultwarden/data/db.sqlite3
-
-# Restore attachments
 tar -xzf /backup/vaultwarden/YYYYMMDD/attachments_*.tar.gz -C /var/lib/vaultwarden/data/
 
-# Restore sends (if exists)
-tar -xzf /backup/vaultwarden/YYYYMMDD/sends_*.tar.gz -C /var/lib/vaultwarden/data/
-```
-
-### 3. Restart the Pod
-
-```bash
+# 3. Restart the Pod
 kubectl scale deployment vaultwarden --replicas=1
-```
-
-## Troubleshooting
-
-### ArgoCD Application Not Syncing
-
-```bash
-# Check application status
-kubectl -n argocd describe application <app-name>
-
-# Force sync
-kubectl -n argocd patch application <app-name> -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"prune":false}}}' --type=merge
-```
-
-### Certificate Not Issuing
-
-```bash
-# Check cert-manager logs
-kubectl logs -n cert-manager -l app=cert-manager
-
-# Check certificate status
-kubectl describe certificate vaultwarden-tls-cert
-
-# Check challenge status
-kubectl get challenges
-```
-
-### Pod Not Starting
-
-```bash
-# Check pod logs
-kubectl logs -l app.kubernetes.io/name=vaultwarden
-
-# Check events
-kubectl describe pod -l app.kubernetes.io/name=vaultwarden
 ```

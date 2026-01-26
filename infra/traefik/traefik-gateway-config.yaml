@@ -1,0 +1,35 @@
+# /var/lib/rancher/k3s/server/manifests/traefik-config-http3.yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    service:
+      spec:
+        externalTrafficPolicy: Local
+
+    deployment:
+      additionalPorts:
+        - name: websecure-http3
+          containerPort: 8443
+          protocol: UDP
+
+    additionalArguments:
+      - "--entryPoints.web.forwardedHeaders.insecure=true"
+      - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+      - "--entryPoints.web.proxyProtocol.insecure=true"
+      - "--entryPoints.websecure.proxyProtocol.insecure=true"
+      - "--entryPoints.websecure.http3=true"
+      - "--entryPoints.websecure.http3.advertisedPort=443"
+
+    providers:
+      kubernetesGateway:
+        enabled: true
+      kubernetesCRD:
+        enabled: true
+        allowCrossNamespace: true
+      kubernetesIngress:
+        enabled: false
+

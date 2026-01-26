@@ -25,6 +25,9 @@ spec:
       releaseName: cert-manager
       values: |
         installCRDs: true
+        featureGates: "ExperimentalGatewayAPISupport=true"
+        extraArgs:
+          - --enable-gateway-api
   syncPolicy:
     automated:
       prune: true

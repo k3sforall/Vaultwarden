@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: clusterissuer-argocd
+  labels:
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/component: cert-manager
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "hanlim@speedykorea.com"
+    privateKeySecretRef:
+      name: clusterissuer-argocd-key
+    solvers:
+      - http01:
+          gatewayHTTPRoute:
+            parentRefs:
+              - name: argocd-gw
+                namespace: argocd
+                kind: Gateway
+        selector:
+          dnsNames:
+            - sargocd.speedycdn.net

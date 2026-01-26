@@ -1,0 +1,33 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: argocd-gw
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: web
+      hostname: sargocd.speedycdn.net
+      port: 8000
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: websecure
+      hostname: sargocd.speedycdn.net
+      port: 8443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: argocd-tls-secret
+      allowedRoutes:
+        namespaces:
+          from: Same

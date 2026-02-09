@@ -41,6 +41,7 @@ helm upgrade --install argocd argo/argo-cd \
     -n argocd \
     --set server.service.type=ClusterIP \
     --set configs.params."server\.insecure"=true \
+    --set configs.cm."timeout\.reconciliation"=300s \
     --wait
 
 echo ""

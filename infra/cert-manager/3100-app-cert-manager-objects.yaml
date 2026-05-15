@@ -21,9 +21,6 @@ spec:
     directory:
       recurse: false
   syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
     syncOptions:
       - CreateNamespace=false
       - ApplyOutOfSyncOnly=true

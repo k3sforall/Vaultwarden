@@ -29,9 +29,6 @@ spec:
         extraArgs:
           - --enable-gateway-api
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true

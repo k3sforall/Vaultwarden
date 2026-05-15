@@ -21,9 +21,6 @@ spec:
     name: in-cluster
     namespace: default
   syncPolicy:
-    automated:
-      selfHeal: true
-      prune: false
     syncOptions:
       - CreateNamespace=false
       - ApplyOutOfSyncOnly=true

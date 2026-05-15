@@ -124,6 +124,60 @@ kubectl apply -f /root/Vaultwarden/Application/vaultwarden-argocd/vaultwarden-ap
 | vaultwarden-gateway | Vaultwarden Gateway API | Application/vaultwarden-gateway |
 | vaultwarden | Vaultwarden Core | Application/vaultwarden |
 
+## Sync Policy
+
+All Applications use **manual sync** to reduce CPU load on this
+low-spec single-node cluster. ArgoCD still polls Git every 3 minutes
+to detect OutOfSync, but does **not** auto-apply changes. `selfHeal`
+is also disabled, so cluster drift (e.g. someone running `kubectl
+edit`) is not automatically reverted to Git.
+
+| Application | syncPolicy.automated | selfHeal |
+|---|---|---|
+| vaultwarden, argocd-gateway, vaultwarden-gateway, cert-manager, cert-manager-objects | (removed) | off |
+
+### Applying changes after `git push`
+
+```bash
+# Preview what will change in the cluster
+argocd app diff <app-name>
+
+# Apply a single application
+argocd app sync <app-name>
+
+# Sync all five applications at once
+argocd app sync vaultwarden argocd-gateway vaultwarden-gateway \
+                cert-manager cert-manager-objects
+```
+
+### When manual intervention is needed
+
+- After `git push` of any manifest change → run `argocd app sync <app>`
+- After someone runs `kubectl edit` and creates drift → run
+  `argocd app sync <app>` to revert the cluster to Git
+- To see overall sync state at a glance → `argocd app list`
+
+### Trade-offs
+
+- ✅ Lower CPU on the single-node cluster (no selfHeal scans)
+- ✅ Predictable: nothing changes in the cluster without an explicit
+  human sync command
+- ⚠️ Cluster drift after `kubectl edit` is **not** auto-restored
+- ⚠️ Forgetting to `argocd app sync` after `git push` leaves the
+  cluster on the previous revision
+
+### Re-enabling automated sync (if ever needed)
+
+Add the following block back to each Application yaml under
+`spec.syncPolicy`, commit, push, and run `kubectl apply -f` on the
+Application files (Applications are not managed by ArgoCD themselves):
+
+```yaml
+    automated:
+      selfHeal: true
+      prune: true   # or false for vaultwarden
+```
+
 ## Verification
 
 ```bash

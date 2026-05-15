@@ -9,7 +9,7 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 | Vaultwarden Domain | `svault.speedycdn.net` |
 | ArgoCD Domain | `sargocd.speedycdn.net` |
 | Git URL | `https://github.com/k3sforall/Vaultwarden/` |
-| Node Name | `laptop-nofan` |
+| Node Name | `rabbitmq-node-249` |
 | cert-manager Email | `hanlim@speedykorea.com` |
 | Data Path | `/var/lib/vaultwarden/data` |
 | Backup Path | `/backup/vaultwarden/` |

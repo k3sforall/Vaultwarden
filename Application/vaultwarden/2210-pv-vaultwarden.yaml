@@ -25,4 +25,4 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - laptop-nofan
+                - rabbitmq-node-249

@@ -15,9 +15,9 @@ spec:
         exposedPort: 8089
       websecure:
         exposedPort: 4439
-        http3:
-          enabled: true
-          advertisedPort: 4439
+        # HTTP/3 disabled: k3s ServiceLB + consumer-router only forward TCP,
+        # so advertising h3 (UDP) breaks clients (esp. the browser extension)
+        # that honor Alt-Svc and switch to QUIC. Keep everything on HTTP/2/TCP.
 
     additionalArguments:
       - "--entryPoints.web.forwardedHeaders.insecure=true"

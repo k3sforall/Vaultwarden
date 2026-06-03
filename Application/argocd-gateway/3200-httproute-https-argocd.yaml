@@ -15,7 +15,7 @@ spec:
     - name: argocd-gw
       sectionName: websecure
   hostnames:
-    - sargocd.speedycdn.net
+    - sargocd.icanvoca.com
   rules:
     - matches:
         - path:

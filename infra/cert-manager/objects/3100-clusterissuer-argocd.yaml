@@ -11,16 +11,15 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: "hanlim@speedykorea.com"
+    email: "admin@icanvoca.com"
     privateKeySecretRef:
       name: clusterissuer-argocd-key
     solvers:
-      - http01:
-          gatewayHTTPRoute:
-            parentRefs:
-              - name: argocd-gw
-                namespace: argocd
-                kind: Gateway
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token
         selector:
           dnsNames:
-            - sargocd.speedycdn.net
+            - sargocd.icanvoca.com

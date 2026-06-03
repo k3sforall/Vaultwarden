@@ -6,11 +6,14 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 
 | Item | Value |
 |------|-------|
-| Vaultwarden Domain | `svault.speedycdn.net` |
-| ArgoCD Domain | `sargocd.speedycdn.net` |
+| Vaultwarden Domain | `svault.icanvoca.com:4438` |
+| ArgoCD Domain | `sargocd.icanvoca.com:4438` |
 | Git URL | `https://github.com/k3sforall/Vaultwarden/` |
 | Node Name | `rabbitmq-node-249` |
-| cert-manager Email | `hanlim@speedykorea.com` |
+| cert-manager Email | `admin@icanvoca.com` |
+| ACME Challenge | Cloudflare DNS-01 |
+| Cloudflare DNS Records | A records, TTL 60, DNS-only |
+| External Port Forwarding | `1.220.22.242:8088 -> 192.168.29.249:8088`, `1.220.22.242:4438 -> 192.168.29.249:4438` |
 | Data Path | `/var/lib/vaultwarden/data` |
 | Backup Path | `/backup/vaultwarden/` |
 
@@ -102,6 +105,10 @@ kubectl apply -f /root/Vaultwarden/infra/cert-manager/3000-app-cert-manager.yaml
 
 # Wait for cert-manager
 kubectl -n argocd get application cert-manager -w
+
+# Cloudflare DNS-01 token secret
+kubectl -n cert-manager create secret generic cloudflare-api-token-secret \
+  --from-literal=api-token="${CF_API_TOKEN}"
 
 # cert-manager objects (ClusterIssuers, Certificates)
 kubectl apply -f /root/Vaultwarden/infra/cert-manager/3100-app-cert-manager-objects.yaml
@@ -202,9 +209,9 @@ kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-server
 
 | Service | URL |
 |---------|-----|
-| Vaultwarden | https://svault.speedycdn.net |
-| Vaultwarden Admin | https://svault.speedycdn.net/admin |
-| ArgoCD | https://sargocd.speedycdn.net |
+| Vaultwarden | https://svault.icanvoca.com:4438 |
+| Vaultwarden Admin | https://svault.icanvoca.com:4438/admin |
+| ArgoCD | https://sargocd.icanvoca.com:4438 |
 
 ## ArgoCD Login
 

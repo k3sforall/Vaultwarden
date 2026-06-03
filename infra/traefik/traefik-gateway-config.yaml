@@ -10,19 +10,22 @@ spec:
       spec:
         externalTrafficPolicy: Local
 
-    deployment:
-      additionalPorts:
-        - name: websecure-http3
-          containerPort: 8443
-          protocol: UDP
+    ports:
+      web:
+        port: 8088
+        exposedPort: 8088
+      websecure:
+        port: 4438
+        exposedPort: 4438
+        http3:
+          enabled: true
+          advertisedPort: 4438
 
     additionalArguments:
       - "--entryPoints.web.forwardedHeaders.insecure=true"
       - "--entryPoints.websecure.forwardedHeaders.insecure=true"
       - "--entryPoints.web.proxyProtocol.insecure=true"
       - "--entryPoints.websecure.proxyProtocol.insecure=true"
-      - "--entryPoints.websecure.http3=true"
-      - "--entryPoints.websecure.http3.advertisedPort=443"
 
     providers:
       kubernetesGateway:
@@ -32,4 +35,3 @@ spec:
         allowCrossNamespace: true
       kubernetesIngress:
         enabled: false
-

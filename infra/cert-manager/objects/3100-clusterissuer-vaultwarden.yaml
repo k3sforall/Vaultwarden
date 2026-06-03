@@ -11,16 +11,15 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: "hanlim@speedykorea.com"
+    email: "admin@icanvoca.com"
     privateKeySecretRef:
       name: clusterissuer-vaultwarden-key
     solvers:
-      - http01:
-          gatewayHTTPRoute:
-            parentRefs:
-              - name: vaultwarden-gw
-                namespace: default
-                kind: Gateway
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token
         selector:
           dnsNames:
-            - svault.speedycdn.net
+            - svault.icanvoca.com

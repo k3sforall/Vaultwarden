@@ -16,6 +16,6 @@ spec:
   issuerRef:
     name: clusterissuer-argocd
     kind: ClusterIssuer
-  commonName: sargocd.speedycdn.net
+  commonName: sargocd.icanvoca.com
   dnsNames:
-    - sargocd.speedycdn.net
+    - sargocd.icanvoca.com

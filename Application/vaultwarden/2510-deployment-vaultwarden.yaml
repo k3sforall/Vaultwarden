@@ -29,7 +29,7 @@ spec:
               name: http
           env:
             - name: DOMAIN
-              value: "https://svault.speedycdn.net"
+              value: "https://svault.icanvoca.com:4438"
             - name: WEBSOCKET_ENABLED
               value: "true"
             - name: SIGNUPS_ALLOWED

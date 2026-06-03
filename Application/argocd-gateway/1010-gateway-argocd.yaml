@@ -13,15 +13,15 @@ spec:
   gatewayClassName: traefik
   listeners:
     - name: web
-      hostname: sargocd.speedycdn.net
-      port: 8000
+      hostname: sargocd.icanvoca.com
+      port: 8088
       protocol: HTTP
       allowedRoutes:
         namespaces:
           from: Same
     - name: websecure
-      hostname: sargocd.speedycdn.net
-      port: 8443
+      hostname: sargocd.icanvoca.com
+      port: 4438
       protocol: HTTPS
       tls:
         mode: Terminate

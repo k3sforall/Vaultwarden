@@ -16,6 +16,6 @@ spec:
   issuerRef:
     name: clusterissuer-vaultwarden
     kind: ClusterIssuer
-  commonName: svault.speedycdn.net
+  commonName: svault.icanvoca.com
   dnsNames:
-    - svault.speedycdn.net
+    - svault.icanvoca.com

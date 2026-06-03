@@ -15,7 +15,7 @@ spec:
     - name: argocd-gw
       sectionName: web
   hostnames:
-    - sargocd.speedycdn.net
+    - sargocd.icanvoca.com
   rules:
     # ACME challenge path - pass through without redirect
     - matches:
@@ -34,4 +34,5 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
+            port: 4438
             statusCode: 301

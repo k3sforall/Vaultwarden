@@ -12,12 +12,12 @@ spec:
 
     ports:
       web:
-        exposedPort: 8088
+        exposedPort: 8089
       websecure:
-        exposedPort: 4438
+        exposedPort: 4439
         http3:
           enabled: true
-          advertisedPort: 4438
+          advertisedPort: 4439
 
     additionalArguments:
       - "--entryPoints.web.forwardedHeaders.insecure=true"

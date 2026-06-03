@@ -31,5 +31,5 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
-            port: 4438
+            port: 4439
             statusCode: 301

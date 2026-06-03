@@ -6,14 +6,14 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 
 | Item | Value |
 |------|-------|
-| Vaultwarden Domain | `svault.icanvoca.com:4438` |
-| ArgoCD Domain | `sargocd.icanvoca.com:4438` |
+| Vaultwarden Domain | `svault.icanvoca.com:4439` |
+| ArgoCD Domain | `sargocd.icanvoca.com:4439` |
 | Git URL | `https://github.com/k3sforall/Vaultwarden/` |
 | Node Name | `rabbitmq-node-249` |
 | cert-manager Email | `admin@icanvoca.com` |
 | ACME Challenge | Cloudflare DNS-01 |
 | Cloudflare DNS Records | A records, TTL 60, DNS-only |
-| External Port Forwarding | `1.220.22.242:8088 -> 192.168.29.249:8088`, `1.220.22.242:4438 -> 192.168.29.249:4438` |
+| External Port Forwarding | `1.220.22.242:8089 -> 192.168.29.249:8089`, `1.220.22.242:4439 -> 192.168.29.249:4439` |
 | Data Path | `/var/lib/vaultwarden/data` |
 | Backup Path | `/backup/vaultwarden/` |
 
@@ -209,9 +209,9 @@ kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-server
 
 | Service | URL |
 |---------|-----|
-| Vaultwarden | https://svault.icanvoca.com:4438 |
-| Vaultwarden Admin | https://svault.icanvoca.com:4438/admin |
-| ArgoCD | https://sargocd.icanvoca.com:4438 |
+| Vaultwarden | https://svault.icanvoca.com:4439 |
+| Vaultwarden Admin | https://svault.icanvoca.com:4439/admin |
+| ArgoCD | https://sargocd.icanvoca.com:4439 |
 
 ## ArgoCD Login
 

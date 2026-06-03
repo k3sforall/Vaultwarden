@@ -10,7 +10,11 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  replicas: 1
+  # Vaultwarden now runs as a standalone Docker stack on rabbitmq-node-249
+  # (see "Docker deployment mode" in README.md). This k3s Deployment is kept
+  # for rollback only and is intentionally scaled to 0 so it never opens the
+  # shared SQLite DB at /var/lib/vaultwarden/data while the container is live.
+  replicas: 0
   strategy:
     type: Recreate
   selector:

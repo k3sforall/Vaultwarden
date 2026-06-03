@@ -17,6 +17,45 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 | Data Path | `/var/lib/vaultwarden/data` |
 | Backup Path | `/backup/vaultwarden/` |
 
+## Docker deployment mode (ACTIVE)
+
+> **Vaultwarden currently runs as a standalone Docker stack, not in k3s.** The
+> k3s manifests below are retained for rollback only. The Vaultwarden
+> `Deployment` is scaled to `replicas: 0` so it never opens the shared SQLite DB
+> while the container is live.
+
+- **Location:** `/opt/vaultwarden-docker/` on `rabbitmq-node-249` (`docker-compose.yml`,
+  `Caddyfile`, `Dockerfile.caddy`, `certs/`, `.env`).
+- **Stack:** `vaultwarden/server:1.36.0` (internal `:80`, same env/data as the k3s
+  pod) fronted by **Caddy** (`caddy-cloudflare:local`, built with the Cloudflare
+  DNS module) terminating TLS on the same external ports **`:4439` (https)** and
+  **`:8089` (http→https 301)**. HTTP/3 disabled (TCP only).
+- **Data:** bind-mounts the unchanged host dir `/var/lib/vaultwarden/data`.
+- **TLS:** Phase A reuses the existing Let's Encrypt cert exported from the k8s
+  secret `vaultwarden-tls-secret` (`certs/tls.crt`/`tls.key`, valid to 2026-08-31)
+  — **no ACME**. Phase B (before expiry): swap the `Caddyfile` `tls` block to
+  `tls { dns cloudflare {env.CF_API_TOKEN} }` and `docker compose restart caddy`
+  for permanent auto-renewal.
+- **Ports freed for Docker:** the k3s Traefik `Service` was patched to `ClusterIP`
+  (`kubectl -n kube-system patch svc traefik -p '{"spec":{"type":"ClusterIP"}}'`),
+  removing `svclb-traefik` so Docker can bind `:8089`/`:4439`.
+  **Consequence:** `https://sargocd.icanvoca.com:4439` (ArgoCD) is offline while
+  Docker owns the ports — ArgoCD pods still run (use `kubectl port-forward`); the
+  external URL returns on rollback.
+
+```bash
+# Operate the Docker stack
+cd /opt/vaultwarden-docker
+docker compose ps
+docker compose logs -f vaultwarden
+docker compose restart caddy
+
+# Rollback to k3s (never run both at once — shared SQLite single-writer)
+docker compose down
+kubectl -n kube-system patch svc traefik -p '{"spec":{"type":"LoadBalancer"}}'
+kubectl -n default scale deploy/vaultwarden --replicas=1   # and revert replicas:0 in git
+```
+
 ## Directory Structure
 
 ```
@@ -209,9 +248,9 @@ kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-server
 
 | Service | URL |
 |---------|-----|
-| Vaultwarden | https://svault.icanvoca.com:4439 |
+| Vaultwarden | https://svault.icanvoca.com:4439 (served by Docker/Caddy — see "Docker deployment mode") |
 | Vaultwarden Admin | https://svault.icanvoca.com:4439/admin |
-| ArgoCD | https://sargocd.icanvoca.com:4439 |
+| ArgoCD | https://sargocd.icanvoca.com:4439 (offline while Docker owns :4439; use `kubectl port-forward`) |
 
 ## ArgoCD Login
 

@@ -1,0 +1,47 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.36.0
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://svault.icanvoca.com:4439"
+      WEBSOCKET_ENABLED: "true"
+      SIGNUPS_ALLOWED: "true"
+      ADMIN_TOKEN: "${ADMIN_TOKEN}"
+      DATABASE_URL: "/data/db.sqlite3"
+      LOG_LEVEL: "info"
+      EXTENDED_LOGGING: "true"
+      ORG_EVENTS_ENABLED: "true"
+      EVENTS_DAYS_RETAIN: "365"
+    volumes:
+      - /var/lib/vaultwarden/data:/data
+    networks:
+      - vw
+    # No host ports: only Caddy is published. Caddy reaches it as http://vaultwarden:80.
+
+  caddy:
+    image: caddy-cloudflare:local
+    container_name: vaultwarden-caddy
+    restart: unless-stopped
+    depends_on:
+      - vaultwarden
+    ports:
+      - "8089:8089"
+      - "4439:4439"
+    environment:
+      CF_API_TOKEN: "${CF_API_TOKEN}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - vw
+
+networks:
+  vw:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,26 @@
+{
+	# Phase A: reuse the existing Let's Encrypt cert (explicit tls files below),
+	# so Caddy performs NO ACME and we don't touch the rate limit.
+	# Phase B (later): replace the `tls` line with:
+	#     tls {
+	#         dns cloudflare {env.CF_API_TOKEN}
+	#     }
+	# and `docker compose restart caddy` for permanent auto-renewal.
+	auto_https disable_redirects
+	# Keep everything on TCP (HTTP/1.1 + HTTP/2). No HTTP/3/QUIC, so no
+	# Alt-Svc h3 advertisement — matches the prior known-good Traefik setup.
+	servers {
+		protocols h1 h2
+	}
+}
+
+# HTTPS on the external port 4439 (router forwards :4439 -> here)
+svault.icanvoca.com:4439 {
+	tls /certs/tls.crt /certs/tls.key
+	reverse_proxy vaultwarden:80
+}
+
+# HTTP on external port 8089 -> permanent redirect to HTTPS:4439
+http://svault.icanvoca.com:8089 {
+	redir https://svault.icanvoca.com:4439{uri} permanent
+}

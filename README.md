@@ -24,8 +24,11 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 > `Deployment` is scaled to `replicas: 0` so it never opens the shared SQLite DB
 > while the container is live.
 
-- **Location:** `/opt/vaultwarden-docker/` on `rabbitmq-node-249` (`docker-compose.yml`,
-  `Caddyfile`, `Dockerfile.caddy`, `certs/`, `.env`).
+- **Config (version-controlled):** [`docker/`](docker/) in this repo (`docker-compose.yml`,
+  `Caddyfile`, `Dockerfile.caddy`, `.env.example`). Secrets (`.env`, `certs/`) are gitignored —
+  see [`docker/README.md`](docker/README.md) for bootstrap.
+- **Live runtime dir:** `/opt/vaultwarden-docker/` on `rabbitmq-node-249` (the committed config
+  plus the local `.env` and `certs/`).
 - **Stack:** `vaultwarden/server:1.36.0` (internal `:80`, same env/data as the k3s
   pod) fronted by **Caddy** (`caddy-cloudflare:local`, built with the Cloudflare
   DNS module) terminating TLS on the same external ports **`:4439` (https)** and

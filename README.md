@@ -23,6 +23,8 @@ GitOps-based Vaultwarden deployment for k3s cluster using ArgoCD, Gateway API, a
 > k3s manifests below are retained for rollback only. The Vaultwarden
 > `Deployment` is scaled to `replicas: 0` so it never opens the shared SQLite DB
 > while the container is live.
+>
+> 📄 **Status & remaining TODO:** [`DOCKER-MIGRATION-STATUS.md`](DOCKER-MIGRATION-STATUS.md)
 
 - **Config (version-controlled):** [`docker/`](docker/) in this repo (`docker-compose.yml`,
   `Caddyfile`, `Dockerfile.caddy`, `.env.example`). Secrets (`.env`, `certs/`) are gitignored —

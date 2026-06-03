@@ -14,14 +14,14 @@ spec:
   listeners:
     - name: web
       hostname: svault.icanvoca.com
-      port: 8088
+      port: 8000
       protocol: HTTP
       allowedRoutes:
         namespaces:
           from: Same
     - name: websecure
       hostname: svault.icanvoca.com
-      port: 4438
+      port: 8443
       protocol: HTTPS
       tls:
         mode: Terminate

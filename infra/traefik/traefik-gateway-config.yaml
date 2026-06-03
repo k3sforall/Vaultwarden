@@ -12,10 +12,8 @@ spec:
 
     ports:
       web:
-        port: 8088
         exposedPort: 8088
       websecure:
-        port: 4438
         exposedPort: 4438
         http3:
           enabled: true
